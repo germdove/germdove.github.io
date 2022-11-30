@@ -1,0 +1,98 @@
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<link rel="stylesheet" href="SMRPG.css">
+</head>
+<body>
+
+<div class="rotate" id=dude1>
+
+</div>
+
+<div class="rotate" id=dude2>
+
+</div>
+
+<div class="rotate" id=dude3>
+
+</div>
+
+<div class="rotate" id=dude4>
+
+</div>
+
+<script>
+queryString = window.location.search
+urlParams = new URLSearchParams(queryString)
+for(i=1;i<5;i++){
+window["dude"+i+"name"] = urlParams.get("d"+i+"n")
+window["dude"+i+"count"] = urlParams.get("d"+i+"c")
+}
+
+defaultName = function(num,name){
+window["dude"+num+"name"] = ( window["dude"+num+"name"] !== null && window["dude"+num+"name"] != 0 ) ? window["dude"+num+"name"] : name
+}
+
+defaultName(1,"bomb")
+defaultName(2,"cloud")
+defaultName(3,"ghost")
+defaultName(4,"star")
+
+for(i=1;i<5;i++){
+window["dude"+i+"count"] = ( window["dude"+i+"count"] !== null) ? window["dude"+i+"count"] : 4
+}
+
+function insertDude(num) {
+window["dude"+num] = document.createElement("img")
+window["dude"+num].setAttribute("src", "dudes\\" +window["dude"+num+"name"]+".png")
+document.getElementById("dude"+num).appendChild(window["dude"+num])
+}
+	
+	for(j=1;j<=4;j++){
+	for(i=1;i<=window["dude"+j+"count"];i++){
+		insertDude(j)
+	}
+	
+	positionDudes = function() {
+	var containerW = 720;
+    var containerH = 1280;
+    var positions = [];
+    $('.rotate').children('img').each(function() {
+        var coords = {
+            w: $(this).outerWidth(true),
+            h: $(this).outerHeight(true),
+			diag: Math.sqrt(($(this).outerWidth(true) * $(this).outerWidth(true)) + ($(this).outerHeight(true) * $(this).outerHeight(true)))
+        };
+        var success = false;
+        while (!success)
+        {
+			var failures = 0
+            coords.x = parseInt(Math.random() * (containerW-coords.w));
+            coords.y = parseInt(Math.random() * (containerH-coords.h));
+            var success = true;
+            $.each(positions, function(){
+                if (
+                    coords.x <= (this.x + this.w) &&
+                    (coords.x + coords.diag) >= this.x &&
+                    coords.y <= (this.y + this.diag) &&
+                    (coords.y + coords.diag) >= this.y
+                ) {
+					failures++
+					if( failures > 50 ){success = true}
+                    success = false;
+                }
+            });
+        }
+        positions.push(coords);
+        $(this).css({
+            top: coords.y + 'px',
+            left: coords.x + 'px'
+        });
+    });
+	}
+	
+}
+setTimeout(function(){positionDudes()},10)
+
+</script>
+
+</body>
