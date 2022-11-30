@@ -21,29 +21,19 @@
 </div>
 
 <script>
-queryString = window.location.search
-urlParams = new URLSearchParams(queryString)
-for(i=1;i<5;i++){
-window["dude"+i+"name"] = urlParams.get("d"+i+"n")
-window["dude"+i+"count"] = urlParams.get("d"+i+"c")
-}
-
-defaultName = function(num,name){
-window["dude"+num+"name"] = ( window["dude"+num+"name"] !== null && window["dude"+num+"name"] != 0 ) ? window["dude"+num+"name"] : name
-}
-
-defaultName(1,"bomb")
-defaultName(2,"cloud")
-defaultName(3,"ghost")
-defaultName(4,"star")
 
 for(i=1;i<5;i++){
-window["dude"+i+"count"] = ( window["dude"+i+"count"] !== null) ? window["dude"+i+"count"] : 4
+window["dude"+i+"count"] = 4
 }
-
+	
+	window["dude1src"] = "https://raw.githack.com/germdove/germdove.github.io/main/streaming/dudes/Bomb.png"
+	window["dude2src"] = "https://raw.githack.com/germdove/germdove.github.io/main/streaming/dudes/Ghost.png"
+	window["dude3src"] = "https://raw.githack.com/germdove/germdove.github.io/main/streaming/dudes/Star.png"
+	window["dude4src"] = "https://raw.githack.com/germdove/germdove.github.io/main/streaming/dudes/Cloud.png"
+	
 function insertDude(num) {
 window["dude"+num] = document.createElement("img")
-window["dude"+num].setAttribute("src", "dudes\\" +window["dude"+num+"name"]+".png")
+window["dude"+num].setAttribute("src", window["dude"+num+"src")
 document.getElementById("dude"+num).appendChild(window["dude"+num])
 }
 	
