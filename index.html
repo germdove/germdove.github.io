@@ -1,98 +1,176 @@
+<!DOCTYPE html>
+<html>
 <head>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<link rel="stylesheet" href="SMRPG.css">
+  <style>
+    /* Adjust the animation duration and rotation range as needed */
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Adjust the image position and size as needed */
+    img {
+      position: absolute;
+    }
+  </style>
 </head>
 <body>
+  <div id="container" style="width: 720px; height: 1280px;"></div>
 
-<div class="rotate" id=dude1>
+  <script>
+    // Get the URL parameters
+    var urlParams = new URLSearchParams(window.location.search);
 
-</div>
+    // Array of default image names
+    var defaultImages = ['dobbs', 'gq', 'snail', 'kirbska'];
 
-<div class="rotate" id=dude2>
+    // Array of image names from URL parameters or default images
+    var imageNames = urlParams.has('image') ? urlParams.getAll('image') : defaultImages;
 
-</div>
+    // Ensure that there are always 4 image names
+    while (imageNames.length < 4) {
+      imageNames.push(defaultImages[imageNames.length]);
+    }
 
-<div class="rotate" id=dude3>
-
-</div>
-
-<div class="rotate" id=dude4>
-
-</div>
-
-<script>
-queryString = window.location.search
-urlParams = new URLSearchParams(queryString)
-for(i=1;i<5;i++){
-window["dude"+i+"name"] = urlParams.get("d"+i+"n")
-window["dude"+i+"count"] = urlParams.get("d"+i+"c")
-}
-
-defaultName = function(num,name){
-window["dude"+num+"name"] = ( window["dude"+num+"name"] !== null && window["dude"+num+"name"] != 0 ) ? window["dude"+num+"name"] : name
-}
-
-defaultName(1,"bomb")
-defaultName(2,"cloud")
-defaultName(3,"ghost")
-defaultName(4,"star")
-
-for(i=1;i<5;i++){
-window["dude"+i+"count"] = ( window["dude"+i+"count"] !== null) ? window["dude"+i+"count"] : 4
-}
-
-function insertDude(num) {
-window["dude"+num] = document.createElement("img")
-window["dude"+num].setAttribute("src", "dudes\\" +window["dude"+num+"name"]+".png")
-document.getElementById("dude"+num).appendChild(window["dude"+num])
-}
-	
-	for(j=1;j<=4;j++){
-	for(i=1;i<=window["dude"+j+"count"];i++){
-		insertDude(j)
-	}
-	
-	positionDudes = function() {
-	var containerW = 720;
-    var containerH = 1280;
-    var positions = [];
-    $('.rotate').children('img').each(function() {
-        var coords = {
-            w: $(this).outerWidth(true),
-            h: $(this).outerHeight(true),
-			diag: Math.sqrt(($(this).outerWidth(true) * $(this).outerWidth(true)) + ($(this).outerHeight(true) * $(this).outerHeight(true)))
-        };
-        var success = false;
-        while (!success)
-        {
-			var failures = 0
-            coords.x = parseInt(Math.random() * (containerW-coords.w));
-            coords.y = parseInt(Math.random() * (containerH-coords.h));
-            var success = true;
-            $.each(positions, function(){
-                if (
-                    coords.x <= (this.x + this.w) &&
-                    (coords.x + coords.diag) >= this.x &&
-                    coords.y <= (this.y + this.diag) &&
-                    (coords.y + coords.diag) >= this.y
-                ) {
-					failures++
-					if( failures > 50 ){success = true}
-                    success = false;
-                }
-            });
-        }
-        positions.push(coords);
-        $(this).css({
-            top: coords.y + 'px',
-            left: coords.x + 'px'
-        });
+    // Array of image URLs
+    var images = imageNames.map(function(name) {
+      return 'dudes/' + name + '.png';
     });
-	}
-	
-}
-setTimeout(function(){positionDudes()},10)
 
-</script>
+    // Number of copies for each image
+    var numCopies = 3;
 
+    // Shuffle the images array
+    var shuffledImages = shuffle(images);
+
+    // Get a reference to the container div
+    var container = document.getElementById('container');
+
+    // Randomly place the images
+    for (var i = 0; i < numCopies; i++) {
+      for (var j = 0; j < shuffledImages.length; j++) {
+        var image = document.createElement('img');
+        image.src = shuffledImages[j];
+        image.onload = setImagePosition; // Set position once the image is loaded
+
+        // Apply rotation animation to the image
+        var animationDuration = Math.floor(Math.random() * 6) + 30; // Random duration between 30 and 35 seconds
+        image.style.animation = `rotate ${animationDuration}s linear infinite`;
+		image.style.width = "80px";
+
+        container.appendChild(image);
+      }
+    }
+
+    // Shuffle function to randomly order the images
+    function shuffle(array) {
+      var currentIndex = array.length, temporaryValue, randomIndex;
+
+      while (currentIndex !== 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+
+        temporaryValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = temporaryValue;
+      }
+
+      return array;
+    }
+
+    // Set the position of the image within the container
+    function setImagePosition() {
+      var image = this;
+      var imageRect = image.getBoundingClientRect();
+      var left, top;
+      var attempts = 0;
+      var maxAttempts = 100;
+
+      do {
+        left = Math.floor(Math.random() * (container.offsetWidth - imageRect.width));
+        top = Math.floor(Math.random() * (container.offsetHeight - imageRect.height));
+        attempts++;
+      } while ((hasOverlap(left, top, imageRect) || isOutOfBounds(left, top, imageRect)) && attempts < maxAttempts);
+
+      if (attempts >= maxAttempts) {
+        console.log('Failed to find a non-overlapping position for an image.');
+        return;
+      }
+
+      // Set the position of the image
+      image.style.left = left + 'px';
+      image.style.top = top + 'px';
+
+      // Adjust position to avoid overlapping
+      adjustPosition(image, imageRect);
+    }
+
+    // Check if the image overlaps with existing images
+    function hasOverlap(left, top, imageRect) {
+      var images = container.getElementsByTagName('img');
+      for (var i = 0; i < images.length; i++) {
+        var existingImage = images[i];
+        var existingImageRect = existingImage.getBoundingClientRect();
+
+        var horizontalOverlap = left < existingImageRect.right && left + imageRect.width > existingImageRect.left;
+        var verticalOverlap = top < existingImageRect.bottom && top + imageRect.height > existingImageRect.top;
+
+        if (horizontalOverlap && verticalOverlap) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    // Check if the image is placed outside the container
+    function isOutOfBounds(left, top, imageRect) {
+      return (
+        left < 0 ||
+        top < 0 ||
+        left + imageRect.width > container.offsetWidth ||
+        top + imageRect.height > container.offsetHeight
+      );
+    }
+
+    // Adjust the position of the image to avoid overlapping
+    function adjustPosition(image, imageRect) {
+      var images = container.getElementsByTagName('img');
+      var iterations = 0;
+      var maxIterations = 100;
+
+      do {
+        iterations++;
+        var adjustLeft = Math.floor(Math.random() * (container.offsetWidth - imageRect.width));
+        var adjustTop = Math.floor(Math.random() * (container.offsetHeight - imageRect.height));
+
+        var overlapping = false;
+
+        for (var i = 0; i < images.length; i++) {
+          if (images[i] !== image) {
+            var existingImageRect = images[i].getBoundingClientRect();
+
+            var horizontalOverlap = adjustLeft < existingImageRect.right && adjustLeft + imageRect.width > existingImageRect.left;
+            var verticalOverlap = adjustTop < existingImageRect.bottom && adjustTop + imageRect.height > existingImageRect.top;
+
+            if (horizontalOverlap && verticalOverlap) {
+              overlapping = true;
+              break;
+            }
+          }
+        }
+
+        if (!overlapping) {
+          image.style.left = adjustLeft + 'px';
+          image.style.top = adjustTop + 'px';
+          break;
+        }
+      } while (iterations < maxIterations);
+
+      if (iterations >= maxIterations) {
+        console.log('Failed to adjust the position to avoid overlapping for an image.');
+      }
+    }
+  </script>
 </body>
+</html>
